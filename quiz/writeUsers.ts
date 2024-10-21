@@ -8,10 +8,14 @@ const writeUsersRouter = (dataFile: string) => {
     let users: User[];
 
     //Load users when the module initializes
-    fs.readFile(path.resolve(dataFile), (err,data) => {
-        if(err) throw err;
-        users = JSON.parse(data.toString());
-    });
+    const loadUsers = () => {
+        fs.readFile(path.resolve(dataFile), (err,data) => {
+            if(err) throw err;
+            users = JSON.parse(data.toString());
+        });
+    }
+
+    loadUsers();
 
     //middleware to add users to the request object
     const addUsersToRequest = (req: UserRequest, res: Response, next:Function) => {
@@ -38,6 +42,7 @@ const writeUsersRouter = (dataFile: string) => {
                 return res.status(500).json({ message: 'Failed to save user'});
             } else {
                 console.log('User Saved');
+                loadUsers();
                 res.json({message : 'User added successfully'});
             }
         });

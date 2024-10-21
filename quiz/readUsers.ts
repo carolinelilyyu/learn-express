@@ -9,19 +9,27 @@ const readUsersRouter = (dataFile: string) => {
     let users: User[];
 
     //load file
-    fs.readFile(path.resolve(dataFile), (err,data) => {
-        if(err) throw err;
-        users = JSON.parse(data.toString());
-    });
+    const loadUsers = (): Promise<User[]> => {
+        return new Promise((resolve, reject) => {
+            fs.readFile(path.resolve(dataFile), (err,data) => {
+                if(err){
+                    reject(err);
+                } 
+                const users = JSON.parse(data.toString());
+                resolve(users);
+            });
+        })
+    }
 
     //Middleware to add users to the request object
-    const addUsersToRequest = (req: UserRequest, res:  Response, next: NextFunction) => {
-        if(users){
-            req.users = users;
+    const addUsersToRequest = async (req: UserRequest, res:  Response, next: NextFunction) => {
+        try{
+            req.users = await loadUsers();
             next();
-        } else {
-            return res.status(404).json({
-                error: {message : 'users not found', status:404} 
+        }catch(error){
+            console.error('Failed to load users', error);
+            return res.status(500).json({
+                error: { message: 'Failed to load users', status: 500 },
             });
         }
     };
