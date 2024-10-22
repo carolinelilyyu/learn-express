@@ -3,39 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import {User, UserRequest} from './types';
 
-const readUsersRouter = (dataFile: string) => {
+const readUsersRouter = () => {
     const router = express.Router();
 
     let users: User[];
 
-    //load file
-    const loadUsers = (): Promise<User[]> => {
-        return new Promise((resolve, reject) => {
-            fs.readFile(path.resolve(dataFile), (err,data) => {
-                if(err){
-                    reject(err);
-                } 
-                const users = JSON.parse(data.toString());
-                resolve(users);
-            });
-        })
-    }
-
-    //Middleware to add users to the request object
-    const addUsersToRequest = async (req: UserRequest, res:  Response, next: NextFunction) => {
-        try{
-            req.users = await loadUsers();
-            next();
-        }catch(error){
-            console.error('Failed to load users', error);
-            return res.status(500).json({
-                error: { message: 'Failed to load users', status: 500 },
-            });
-        }
-    };
-
-    //Use the middleware for all routes in /read
-    router.use(addUsersToRequest);
 
     //GET all usernames
     router.get('/usernames', (req: UserRequest, res:Response) => {
